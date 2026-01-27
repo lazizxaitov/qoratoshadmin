@@ -73,7 +73,14 @@ export default function IntegrationsPage() {
       body: JSON.stringify({ ...form, source: "Admin" }),
     });
     if (!response.ok) {
-      setSendStatus(copy.sendFailed);
+      let details = "";
+      try {
+        const data = await response.json();
+        if (data?.error) {
+          details = ` (${data.error})`;
+        }
+      } catch {}
+      setSendStatus(`${copy.sendFailed}${details}`);
       return;
     }
     setSendStatus(copy.sent);
