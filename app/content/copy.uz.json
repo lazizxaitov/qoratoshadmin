@@ -67,6 +67,8 @@
   "phoneLabel": "\"Telefon\" label",
   "emailLabel": "\"Email\" label",
   "addSocial": "Ijtimoiy tarmoq qo'shish",
+  "modalNew": "Ijtimoiy tarmoq qo'shish",
+  "modalEdit": "Ijtimoiy tarmoqni tahrirlash",
   "socialLabel": "Tarmoq nomi",
   "socialLink": "Tarmoq havolasi",
   "statusSaving": "Saqlanmoqda...",
