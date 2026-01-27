@@ -5,6 +5,7 @@ const PUBLIC_PATHS = new Set([
   "/login",
   "/api/auth/login",
   "/api/auth/logout",
+  "/api/site/telegram",
 ]);
 
 export function middleware(request: NextRequest) {
