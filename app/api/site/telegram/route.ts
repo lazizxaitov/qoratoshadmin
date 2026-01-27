@@ -7,6 +7,9 @@ type TelegramPayload = {
   email?: string;
   message?: string;
   source?: string;
+  tourTitle?: string;
+  tourId?: string;
+  tourLink?: string;
 };
 
 const normalizeChatId = (value?: string) => {
@@ -14,7 +17,7 @@ const normalizeChatId = (value?: string) => {
   if (!trimmed) {
     return "";
   }
-  if (/^@/.test(trimmed) || /^-?\d+$/.test(trimmed)) {
+  if (/^@/.test(trimmed) || /^-?\\d+$/.test(trimmed)) {
     return trimmed;
   }
   const match = trimmed.match(/t\.me\/([A-Za-z0-9_]+)/);
@@ -64,15 +67,35 @@ export async function POST(request: Request) {
   const email = body.email?.trim() || "-";
   const message = body.message?.trim() || "-";
   const source = body.source?.trim() || "Admin";
+  const tourTitle = body.tourTitle?.trim() || "";
+  const tourId = body.tourId?.trim() || "";
+  const tourLink = body.tourLink?.trim() || "";
 
-  const text = [
+  const lines = [
     "Новая заявка",
     `Источник: ${source}`,
     `Имя: ${name}`,
     `Телефон: ${phone}`,
     `Email: ${email}`,
     `Сообщение: ${message}`,
-  ].join("\n");
+  ];
+
+  if (tourTitle || tourId || tourLink) {
+    lines.push("");
+    lines.push("Тур:");
+    if (tourTitle) {
+      lines.push(`- Название: ${tourTitle}`);
+    }
+    if (tourId) {
+      lines.push(`- ID: ${tourId}`);
+    }
+    if (tourLink) {
+      lines.push(`- Ссылка: ${tourLink}`);
+    }
+  }
+
+  const text = lines.join("
+");
 
   const response = await fetch(
     `https://api.telegram.org/bot${config.botToken}/sendMessage`,
