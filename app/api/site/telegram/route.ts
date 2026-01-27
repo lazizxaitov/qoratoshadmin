@@ -9,6 +9,21 @@ type TelegramPayload = {
   source?: string;
 };
 
+const normalizeChatId = (value?: string) => {
+  const trimmed = (value ?? "").trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (/^@/.test(trimmed) || /^-?\d+$/.test(trimmed)) {
+    return trimmed;
+  }
+  const match = trimmed.match(/t\.me\/([A-Za-z0-9_]+)/);
+  if (match) {
+    return `@${match[1]}`;
+  }
+  return trimmed;
+};
+
 export async function GET() {
   const config = readTelegramConfig();
   return NextResponse.json({ config });
@@ -26,7 +41,7 @@ export async function PUT(request: Request) {
     ...config,
     enabled: Boolean(body.enabled),
     botToken: body.botToken ?? "",
-    chatId: body.chatId ?? "",
+    chatId: normalizeChatId(body.chatId),
   };
 
   writeTelegramConfig(nextConfig);
@@ -35,7 +50,8 @@ export async function PUT(request: Request) {
 
 export async function POST(request: Request) {
   const config = readTelegramConfig();
-  if (!config.enabled || !config.botToken || !config.chatId) {
+  const chatId = normalizeChatId(config.chatId);
+  if (!config.enabled || !config.botToken || !chatId) {
     return NextResponse.json(
       { error: "Telegram is not configured" },
       { status: 400 }
@@ -64,7 +80,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chat_id: config.chatId,
+        chat_id: chatId,
         text,
         parse_mode: "HTML",
       }),
