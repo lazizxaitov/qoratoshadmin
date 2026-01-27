@@ -33,6 +33,7 @@
   "addItem": "Qo'shish",
   "edit": "Tahrirlash",
   "remove": "O'chirish",
+  "confirmClose": "Saqlanmagan o'zgarishlar bor. Yopilsinmi?",
   "modalNew": "Qo'shish",
   "modalEdit": "Tahrirlash"
 }

@@ -49,6 +49,7 @@ export default function ContentPage() {
     image: "",
     href: "",
   });
+  const [bannerSnapshot, setBannerSnapshot] = useState("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewModalMode, setReviewModalMode] = useState<"new" | "edit">("new");
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
@@ -58,10 +59,12 @@ export default function ContentPage() {
     city: "",
     text: "",
   });
+  const [reviewSnapshot, setReviewSnapshot] = useState("");
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [isGalleryEditModalOpen, setIsGalleryEditModalOpen] = useState(false);
   const [galleryEditIndex, setGalleryEditIndex] = useState<number | null>(null);
   const [galleryEditUrl, setGalleryEditUrl] = useState("");
+  const [galleryEditSnapshot, setGalleryEditSnapshot] = useState("");
   const [bannerSearch, setBannerSearch] = useState("");
   const [reviewSearch, setReviewSearch] = useState("");
   const [gallerySearch, setGallerySearch] = useState("");
@@ -71,6 +74,7 @@ export default function ContentPage() {
     label: "",
     href: "",
   });
+  const [socialSnapshot, setSocialSnapshot] = useState("");
 
   const copy = adminLang === "ru" ? ruCopy : uzCopy;
 
@@ -233,17 +237,32 @@ export default function ContentPage() {
       image: "",
       href: "",
     });
+    setBannerSnapshot(
+      JSON.stringify({
+        badge: "",
+        title: "",
+        description: "",
+        image: "",
+        href: "",
+      })
+    );
     setIsBannerModalOpen(true);
   };
 
   const openBannerModalEdit = (index: number) => {
     setBannerModalMode("edit");
     setBannerIndex(index);
-    setBannerForm(banners[index] ?? {});
+    const nextForm = banners[index] ?? {};
+    setBannerForm(nextForm);
+    setBannerSnapshot(JSON.stringify(nextForm));
     setIsBannerModalOpen(true);
   };
 
   const closeBannerModal = () => {
+    const isDirty = bannerSnapshot !== JSON.stringify(bannerForm);
+    if (isDirty && !window.confirm(copy.confirmClose)) {
+      return;
+    }
     setIsBannerModalOpen(false);
   };
 
@@ -261,18 +280,26 @@ export default function ContentPage() {
   const openReviewModalNew = () => {
     setReviewModalMode("new");
     setReviewIndex(null);
-    setReviewForm({ id: `review-${Date.now()}`, name: "", city: "", text: "" });
+    const nextForm = { id: `review-${Date.now()}`, name: "", city: "", text: "" };
+    setReviewForm(nextForm);
+    setReviewSnapshot(JSON.stringify(nextForm));
     setIsReviewModalOpen(true);
   };
 
   const openReviewModalEdit = (index: number) => {
     setReviewModalMode("edit");
     setReviewIndex(index);
-    setReviewForm(reviews[index] ?? { id: "", name: "", city: "", text: "" });
+    const nextForm = reviews[index] ?? { id: "", name: "", city: "", text: "" };
+    setReviewForm(nextForm);
+    setReviewSnapshot(JSON.stringify(nextForm));
     setIsReviewModalOpen(true);
   };
 
   const closeReviewModal = () => {
+    const isDirty = reviewSnapshot !== JSON.stringify(reviewForm);
+    if (isDirty && !window.confirm(copy.confirmClose)) {
+      return;
+    }
     setIsReviewModalOpen(false);
   };
 
@@ -289,11 +316,17 @@ export default function ContentPage() {
 
   const openGalleryEditModal = (index: number) => {
     setGalleryEditIndex(index);
-    setGalleryEditUrl(gallery[index] ?? "");
+    const nextUrl = gallery[index] ?? "";
+    setGalleryEditUrl(nextUrl);
+    setGalleryEditSnapshot(nextUrl);
     setIsGalleryEditModalOpen(true);
   };
 
   const closeGalleryEditModal = () => {
+    const isDirty = galleryEditSnapshot !== galleryEditUrl;
+    if (isDirty && !window.confirm(copy.confirmClose)) {
+      return;
+    }
     setIsGalleryEditModalOpen(false);
   };
 
@@ -309,17 +342,25 @@ export default function ContentPage() {
 
   const openSocialModalNew = () => {
     setSocialIndex(null);
-    setSocialForm({ label: "", href: "" });
+    const nextForm = { label: "", href: "" };
+    setSocialForm(nextForm);
+    setSocialSnapshot(JSON.stringify(nextForm));
     setIsSocialModalOpen(true);
   };
 
   const openSocialModalEdit = (index: number) => {
     setSocialIndex(index);
-    setSocialForm(socialLinks[index] ?? { label: "", href: "" });
+    const nextForm = socialLinks[index] ?? { label: "", href: "" };
+    setSocialForm(nextForm);
+    setSocialSnapshot(JSON.stringify(nextForm));
     setIsSocialModalOpen(true);
   };
 
   const closeSocialModal = () => {
+    const isDirty = socialSnapshot !== JSON.stringify(socialForm);
+    if (isDirty && !window.confirm(copy.confirmClose)) {
+      return;
+    }
     setIsSocialModalOpen(false);
   };
 
@@ -845,8 +886,14 @@ export default function ContentPage() {
       {status ? <p className="text-sm text-emerald-700">{status}</p> : null}
 
       {isBannerModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-3xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeBannerModal}
+        >
+          <div
+            className="glass-panel w-full max-w-3xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {bannerModalMode === "new"
@@ -962,8 +1009,14 @@ export default function ContentPage() {
       ) : null}
 
       {isReviewModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-2xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeReviewModal}
+        >
+          <div
+            className="glass-panel w-full max-w-2xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {reviewModalMode === "new"
@@ -1033,8 +1086,14 @@ export default function ContentPage() {
       ) : null}
 
       {isGalleryModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setIsGalleryModalOpen(false)}
+        >
+          <div
+            className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {copy.galleryModalTitle}
@@ -1068,8 +1127,14 @@ export default function ContentPage() {
       ) : null}
 
       {isGalleryEditModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeGalleryEditModal}
+        >
+          <div
+            className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {copy.galleryEditTitle}
@@ -1119,8 +1184,14 @@ export default function ContentPage() {
       ) : null}
 
       {isSocialModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeSocialModal}
+        >
+          <div
+            className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {socialIndex !== null ? copy.modalEdit : copy.modalNew}

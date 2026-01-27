@@ -248,6 +248,7 @@ export default function ToursPage() {
     label_uz: "",
     label_en: "",
   });
+  const [typeSnapshot, setTypeSnapshot] = useState("{}");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const typeDropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -569,7 +570,9 @@ export default function ToursPage() {
 
   const openTypeModalNew = () => {
     setTypeModalMode("new");
-    setTypeForm({ code: "", label_ru: "", label_uz: "", label_en: "" });
+    const nextForm = { code: "", label_ru: "", label_uz: "", label_en: "" };
+    setTypeForm(nextForm);
+    setTypeSnapshot(JSON.stringify(nextForm));
     setTypeStatus("");
     setIsTypeModalOpen(true);
   };
@@ -577,11 +580,16 @@ export default function ToursPage() {
   const openTypeModalEdit = (item: TourTypeItem) => {
     setTypeModalMode("edit");
     setTypeForm(item);
+    setTypeSnapshot(JSON.stringify(item));
     setTypeStatus("");
     setIsTypeModalOpen(true);
   };
 
   const closeTypeModal = () => {
+    const isTypeDirty = typeSnapshot !== JSON.stringify(typeForm);
+    if (isTypeDirty && !window.confirm(copy.confirmClose)) {
+      return;
+    }
     setIsTypeModalOpen(false);
   };
 
@@ -715,8 +723,14 @@ export default function ToursPage() {
       </SectionCard>
 
       {isModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-3xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeModal}
+        >
+          <div
+            className="glass-panel w-full max-w-3xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-emerald-900">
@@ -983,8 +997,14 @@ export default function ToursPage() {
       ) : null}
 
       {isTypeModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeTypeModal}
+        >
+          <div
+            className="glass-panel w-full max-w-xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {typeModalMode === "new"

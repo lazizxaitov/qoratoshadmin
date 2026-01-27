@@ -38,6 +38,7 @@ export default function AboutAdminPage() {
   const [statForm, setStatForm] = useState<AboutStat>({ label: "", value: "" });
   const [statAutoTours, setStatAutoTours] = useState(false);
   const [stepForm, setStepForm] = useState<AboutStep>({ title: "", text: "" });
+  const [listSnapshot, setListSnapshot] = useState("");
 
   const locale = useMemo(
     () => (contentData?.[contentLang] as ContentMap) ?? {},
@@ -130,33 +131,73 @@ export default function AboutAdminPage() {
     setListModalType(type);
     setListIndex(index ?? null);
     if (type === "perks") {
-      setListText(index !== undefined ? perks[index] ?? "" : "");
+      const nextText = index !== undefined ? perks[index] ?? "" : "";
+      setListText(nextText);
+      setListSnapshot(JSON.stringify({ type, text: nextText }));
     } else if (type === "why") {
-      setListText(index !== undefined ? whyPoints[index] ?? "" : "");
+      const nextText = index !== undefined ? whyPoints[index] ?? "" : "";
+      setListText(nextText);
+      setListSnapshot(JSON.stringify({ type, text: nextText }));
     } else if (type === "stats") {
       const item = index !== undefined ? stats[index] : undefined;
       const isAuto = item?.value === "{tours}";
-      setStatAutoTours(isAuto);
-      setStatForm({
+      const nextForm = {
         label: item?.label ?? "",
         value: isAuto ? "" : item?.value ?? "",
-      });
+      };
+      setStatAutoTours(isAuto);
+      setStatForm(nextForm);
+      setListSnapshot(
+        JSON.stringify({
+          type,
+          label: nextForm.label,
+          value: nextForm.value,
+          auto: isAuto,
+        })
+      );
     } else if (type === "steps") {
       const item = index !== undefined ? steps[index] : undefined;
-      setStepForm({
+      const nextForm = {
         title: item?.title ?? "",
         text: item?.text ?? "",
-      });
+      };
+      setStepForm(nextForm);
+      setListSnapshot(
+        JSON.stringify({ type, title: nextForm.title, text: nextForm.text })
+      );
     }
   };
 
   const closeListModal = () => {
+    let currentSnapshot = listSnapshot;
+    if (listModalType === "perks" || listModalType === "why") {
+      currentSnapshot = JSON.stringify({ type: listModalType, text: listText });
+    } else if (listModalType === "stats") {
+      currentSnapshot = JSON.stringify({
+        type: listModalType,
+        label: statForm.label,
+        value: statForm.value,
+        auto: statAutoTours,
+      });
+    } else if (listModalType === "steps") {
+      currentSnapshot = JSON.stringify({
+        type: listModalType,
+        title: stepForm.title,
+        text: stepForm.text,
+      });
+    }
+    if (listModalType && listSnapshot !== currentSnapshot) {
+      if (!window.confirm(copy.confirmClose)) {
+        return;
+      }
+    }
     setListModalType(null);
     setListIndex(null);
     setListText("");
     setStatForm({ label: "", value: "" });
     setStatAutoTours(false);
     setStepForm({ title: "", text: "" });
+    setListSnapshot("");
   };
 
   const handleListSave = () => {
@@ -513,8 +554,14 @@ export default function AboutAdminPage() {
       {status ? <p className="text-sm text-emerald-700">{status}</p> : null}
 
       {listModalType ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="glass-panel w-full max-w-xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={closeListModal}
+        >
+          <div
+            className="glass-panel w-full max-w-xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-emerald-900">
                 {listIndex !== null ? copy.modalEdit : copy.modalNew}
