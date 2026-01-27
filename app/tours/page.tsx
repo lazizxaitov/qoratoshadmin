@@ -76,8 +76,13 @@ const serializeTour = (tour: Tour) =>
     gallery_urls: tour.gallery_urls ?? [],
   });
 
-const formatDateValue = (date: Date | null) =>
-  date ? date.toISOString().slice(0, 10) : "";
+const formatDateValue = (date: Date | null) => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const parseDateValue = (value: string) =>
   value ? new Date(`${value}T00:00:00`) : null;
