@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f4ef;
+  --foreground: #182018;
+  --brand-700: #0b7a4b;
+  --brand-600: #12945d;
+  --brand-500: #1db26e;
+  --brand-100: #d9f4e6;
+  --sand-50: #f9f6f0;
+  --sand-100: #f1ebe0;
+  --ink-900: #0f1f14;
+  --ink-700: #2b3a2f;
+  --gold-300: #f1c36a;
+  --sky-200: #d8f0ff;
+  --shadow-strong: 0 6px 12px rgba(15, 31, 20, 0.1);
+  --shadow-soft: 0 3px 7px rgba(15, 31, 20, 0.06);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0c140f;
+    --foreground: #e8f1ea;
   }
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(180deg, #f6f4ef 0%, #ffffff 45%, #f5f9f6 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), "Times New Roman", serif;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+}
+
+[contenteditable][data-placeholder]:empty:before {
+  content: attr(data-placeholder);
+  color: #8a9b8f;
 }

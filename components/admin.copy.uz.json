@@ -1,0 +1,12 @@
+{
+  "brandTitle": "Admin paneli",
+  "brandBadge": "Qoratosh Travel",
+  "navLabel": "Navigatsiya",
+  "nav": {
+    "tours": "Turlar",
+    "content": "Kontent"
+  },
+  "private": "Yopiq",
+  "logout": "Chiqish",
+  "langLabel": "Til"
+}
