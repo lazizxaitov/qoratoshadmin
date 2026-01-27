@@ -11,8 +11,17 @@ import uzCopy from "./copy.uz.json";
 const emptyTour: Tour = {
   id: "",
   title: "",
+  title_ru: "",
+  title_uz: "",
+  title_en: "",
   country: "",
+  country_ru: "",
+  country_uz: "",
+  country_en: "",
   city: "",
+  city_ru: "",
+  city_uz: "",
+  city_en: "",
   start_date: "",
   end_date: "",
   adults_min: 1,
@@ -26,8 +35,10 @@ const emptyTour: Tour = {
 };
 
 const TOUR_TYPES = ["regular", "hot", "promo"] as const;
+const TOUR_LANGS = ["ru", "uz", "en"] as const;
 
 type TourType = (typeof TOUR_TYPES)[number];
+type TourLang = (typeof TOUR_LANGS)[number];
 
 type TourTypeItem = {
   code: string;
@@ -42,8 +53,17 @@ const serializeTour = (tour: Tour) =>
   JSON.stringify({
     id: tour.id,
     title: tour.title,
+    title_ru: tour.title_ru,
+    title_uz: tour.title_uz,
+    title_en: tour.title_en,
     country: tour.country,
+    country_ru: tour.country_ru,
+    country_uz: tour.country_uz,
+    country_en: tour.country_en,
     city: tour.city,
+    city_ru: tour.city_ru,
+    city_uz: tour.city_uz,
+    city_en: tour.city_en,
     start_date: tour.start_date,
     end_date: tour.end_date,
     adults_min: tour.adults_min,
@@ -210,6 +230,7 @@ export default function ToursPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>("new");
   const [initialSnapshot, setInitialSnapshot] = useState("{}");
+  const [tourLang, setTourLang] = useState<TourLang>("ru");
   const [tourTypes, setTourTypes] = useState<TourTypeItem[]>([]);
   const [typesLoaded, setTypesLoaded] = useState(false);
   const [hasSeededTypes, setHasSeededTypes] = useState(false);
@@ -323,6 +344,18 @@ export default function ToursPage() {
     if (selectedTour && modalMode === "edit") {
       const nextForm = {
         ...selectedTour,
+        title_ru: selectedTour.title_ru ?? selectedTour.title ?? "",
+        title_uz: selectedTour.title_uz ?? selectedTour.title ?? "",
+        title_en: selectedTour.title_en ?? selectedTour.title ?? "",
+        country_ru: selectedTour.country_ru ?? selectedTour.country ?? "",
+        country_uz: selectedTour.country_uz ?? selectedTour.country ?? "",
+        country_en: selectedTour.country_en ?? selectedTour.country ?? "",
+        city_ru: selectedTour.city_ru ?? selectedTour.city ?? "",
+        city_uz: selectedTour.city_uz ?? selectedTour.city ?? "",
+        city_en: selectedTour.city_en ?? selectedTour.city ?? "",
+        title: selectedTour.title_ru ?? selectedTour.title ?? "",
+        country: selectedTour.country_ru ?? selectedTour.country ?? "",
+        city: selectedTour.city_ru ?? selectedTour.city ?? "",
         tour_type:
           selectedTour.tour_type ?? (selectedTour.is_hot ? "hot" : "regular"),
         gallery_urls: Array.isArray(selectedTour.gallery_urls)
@@ -367,12 +400,14 @@ export default function ToursPage() {
     setForm(emptyTour);
     setInitialSnapshot(serializeTour(emptyTour));
     setStatus("");
+    setTourLang("ru");
     setIsModalOpen(true);
   };
 
   const openEditModal = (tour: Tour) => {
     setModalMode("edit");
     setSelectedId(tour.id);
+    setTourLang("ru");
     setIsModalOpen(true);
   };
 
@@ -398,9 +433,18 @@ export default function ToursPage() {
 
   const handleTitleChange = (value: string) => {
     setForm((prev) => {
+      const key = `title_${tourLang}` as keyof Tour;
       const nextId = prev.id || slugify(value);
-      return { ...prev, title: value, id: nextId };
+      return { ...prev, [key]: value, id: nextId };
     });
+  };
+
+  const handleLocalizedChange = (
+    field: "country" | "city",
+    value: string
+  ) => {
+    const key = `${field}_${tourLang}` as keyof Tour;
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handlePersonsChange = (value: number) => {
@@ -422,8 +466,22 @@ export default function ToursPage() {
 
   const handleSave = async () => {
     setStatus(copy.status.saving);
+    const baseTitle =
+      form.title_ru || form.title || form.title_uz || form.title_en || "";
+    const baseCountry =
+      form.country_ru || form.country || form.country_uz || form.country_en || "";
+    const baseCity =
+      form.city_ru || form.city || form.city_uz || form.city_en || "";
     const method = modalMode === "edit" ? "PUT" : "POST";
-    const payload = form.id ? form : { ...form, id: slugify(form.title) };
+    const payload = form.id
+      ? { ...form, title: baseTitle, country: baseCountry, city: baseCity }
+      : {
+          ...form,
+          id: slugify(baseTitle),
+          title: baseTitle,
+          country: baseCountry,
+          city: baseCity,
+        };
     const response = await fetch("/api/site/tours", {
       method,
       headers: { "Content-Type": "application/json" },
@@ -491,6 +549,17 @@ export default function ToursPage() {
       });
     }
     setForm((prev) => ({ ...prev, gallery_urls: nextUrls }));
+  };
+
+  const getLocalizedValue = (tour: Tour, field: "title" | "country" | "city") => {
+    const key = `${field}_${lang}` as keyof Tour;
+    const localized = tour[key] as string | undefined;
+    return localized || (tour[field] as string) || "";
+  };
+
+  const getFormLocalizedValue = (field: "title" | "country" | "city") => {
+    const key = `${field}_${tourLang}` as keyof Tour;
+    return String(form[key] ?? "");
   };
 
   const openTypeModalNew = () => {
@@ -566,7 +635,9 @@ export default function ToursPage() {
                 className="w-full rounded-xl border border-emerald-100 bg-white/70 px-3 py-2 text-left transition hover:bg-emerald-50"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{tour.title}</span>
+                  <span className="font-medium">
+                    {getLocalizedValue(tour, "title")}
+                  </span>
                   {tour.is_hot ? (
                     <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">
                       {copy.hot}
@@ -574,7 +645,8 @@ export default function ToursPage() {
                   ) : null}
                 </div>
                 <p className="text-xs text-emerald-700">
-                  {tour.city}, {tour.country} - {tour.start_date}
+                  {getLocalizedValue(tour, "city")},{" "}
+                  {getLocalizedValue(tour, "country")} - {tour.start_date}
                 </p>
               </button>
             ))
@@ -656,9 +728,6 @@ export default function ToursPage() {
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {[
-                { key: "title", label: copy.fields.title },
-                { key: "country", label: copy.fields.country },
-                { key: "city", label: copy.fields.city },
                 { key: "price_from", label: copy.fields.priceFrom, type: "number" },
                 { key: "nights", label: copy.fields.nights, type: "number" },
               ].map((field) => (
@@ -672,18 +741,69 @@ export default function ToursPage() {
                     value={String(form[field.key as keyof Tour] ?? "")}
                     type={field.type ?? "text"}
                     onChange={(event) =>
-                      field.key === "title"
-                        ? handleTitleChange(event.target.value)
-                        : handleChange(
-                            field.key as keyof Tour,
-                            field.type === "number"
-                              ? Number(event.target.value)
-                              : event.target.value
-                          )
+                      handleChange(
+                        field.key as keyof Tour,
+                        field.type === "number"
+                          ? Number(event.target.value)
+                          : event.target.value
+                      )
                     }
                   />
                 </label>
               ))}
+            </div>
+
+            <div className="mt-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
+                {copy.tourLanguage}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {TOUR_LANGS.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setTourLang(item)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                      tourLang === item
+                        ? "bg-emerald-600 text-white"
+                        : "border border-emerald-100 bg-white/70 text-emerald-900 hover:bg-emerald-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="text-sm font-medium text-emerald-900">
+                {copy.fields.title}
+                <input
+                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  value={getFormLocalizedValue("title")}
+                  onChange={(event) => handleTitleChange(event.target.value)}
+                />
+              </label>
+              <label className="text-sm font-medium text-emerald-900">
+                {copy.fields.country}
+                <input
+                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  value={getFormLocalizedValue("country")}
+                  onChange={(event) =>
+                    handleLocalizedChange("country", event.target.value)
+                  }
+                />
+              </label>
+              <label className="text-sm font-medium text-emerald-900 md:col-span-2">
+                {copy.fields.city}
+                <input
+                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  value={getFormLocalizedValue("city")}
+                  onChange={(event) =>
+                    handleLocalizedChange("city", event.target.value)
+                  }
+                />
+              </label>
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -762,7 +882,7 @@ export default function ToursPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={form.image_url}
-                    alt={form.title || copy.fields.image}
+                    alt={getFormLocalizedValue("title") || copy.fields.image}
                     className="h-24 w-full object-cover sm:h-32"
                   />
                 ) : (

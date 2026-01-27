@@ -4,7 +4,9 @@
   "navLabel": "Navigatsiya",
   "nav": {
     "tours": "Turlar",
-    "content": "Kontent"
+    "content": "Kontent",
+    "about": "Biz haqimizda",
+    "integrations": "Integratsiya"
   },
   "private": "Yopiq",
   "logout": "Chiqish",

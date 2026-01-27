@@ -1,0 +1,22 @@
+{
+  "title": "Integratsiya",
+  "subtitle": "Telegram orqali arizalarni yuborish.",
+  "telegramTitle": "Telegram bot",
+  "telegramHint": "Botni guruhga qo'shing va admin huquq bering. Guruh chat ID odatda -100 bilan boshlanadi.",
+  "enabled": "Faol",
+  "botToken": "Bot tokeni",
+  "chatId": "Guruh chat ID",
+  "save": "Saqlash",
+  "saving": "Saqlanmoqda...",
+  "saved": "Saqlandi",
+  "saveFailed": "Saqlashda xatolik",
+  "testTitle": "Test xabari",
+  "name": "Ism",
+  "phone": "Telefon",
+  "email": "Email",
+  "message": "Xabar",
+  "send": "Yuborish",
+  "sending": "Yuborilmoqda...",
+  "sent": "Yuborildi",
+  "sendFailed": "Yuborishda xatolik"
+}

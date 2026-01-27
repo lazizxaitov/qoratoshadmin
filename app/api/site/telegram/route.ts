@@ -1,0 +1,80 @@
+import { NextResponse } from "next/server";
+import { readTelegramConfig, writeTelegramConfig } from "../../../../lib/telegram-store";
+
+type TelegramPayload = {
+  name?: string;
+  phone?: string;
+  email?: string;
+  message?: string;
+  source?: string;
+};
+
+export async function GET() {
+  const config = readTelegramConfig();
+  return NextResponse.json({ config });
+}
+
+export async function PUT(request: Request) {
+  const body = (await request.json().catch(() => ({}))) as Partial<{
+    enabled: boolean;
+    botToken: string;
+    chatId: string;
+  }>;
+
+  const config = readTelegramConfig();
+  const nextConfig = {
+    ...config,
+    enabled: Boolean(body.enabled),
+    botToken: body.botToken ?? "",
+    chatId: body.chatId ?? "",
+  };
+
+  writeTelegramConfig(nextConfig);
+  return NextResponse.json({ ok: true, config: nextConfig });
+}
+
+export async function POST(request: Request) {
+  const config = readTelegramConfig();
+  if (!config.enabled || !config.botToken || !config.chatId) {
+    return NextResponse.json(
+      { error: "Telegram is not configured" },
+      { status: 400 }
+    );
+  }
+
+  const body = (await request.json().catch(() => ({}))) as TelegramPayload;
+  const name = body.name?.trim() || "-";
+  const phone = body.phone?.trim() || "-";
+  const email = body.email?.trim() || "-";
+  const message = body.message?.trim() || "-";
+  const source = body.source?.trim() || "Admin";
+
+  const text = [
+    "Новая заявка",
+    `Источник: ${source}`,
+    `Имя: ${name}`,
+    `Телефон: ${phone}`,
+    `Email: ${email}`,
+    `Сообщение: ${message}`,
+  ].join("\n");
+
+  const response = await fetch(
+    `https://api.telegram.org/bot${config.botToken}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: config.chatId,
+        text,
+        parse_mode: "HTML",
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    return NextResponse.json({ error: error?.description ?? "Send failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

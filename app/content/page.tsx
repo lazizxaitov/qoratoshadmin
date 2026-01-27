@@ -24,6 +24,11 @@ type Review = {
   text: string;
 };
 
+type SocialLink = {
+  label: string;
+  href: string;
+};
+
 const languages = ["ru", "uz", "en"] as const;
 
 type ContentLang = (typeof languages)[number];
@@ -60,6 +65,12 @@ export default function ContentPage() {
   const [bannerSearch, setBannerSearch] = useState("");
   const [reviewSearch, setReviewSearch] = useState("");
   const [gallerySearch, setGallerySearch] = useState("");
+  const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [socialIndex, setSocialIndex] = useState<number | null>(null);
+  const [socialForm, setSocialForm] = useState<SocialLink>({
+    label: "",
+    href: "",
+  });
 
   const copy = adminLang === "ru" ? ruCopy : uzCopy;
 
@@ -140,6 +151,26 @@ export default function ContentPage() {
     });
   };
 
+  const updateContacts = (key: string, value: string) => {
+    updateLocale({
+      ...locale,
+      contacts: {
+        ...(locale.contacts ?? {}),
+        [key]: value,
+      },
+    });
+  };
+
+  const updateSocialLinks = (next: SocialLink[]) => {
+    updateLocale({
+      ...locale,
+      footer: {
+        ...(locale.footer ?? {}),
+        socialLinks: next,
+      },
+    });
+  };
+
   const handleUpload = async (file: File, onUploaded: (url: string) => void) => {
     setStatus(copy.statusUploading);
     const formData = new FormData();
@@ -176,6 +207,7 @@ export default function ContentPage() {
   const banners = (locale?.hero?.slides ?? []) as Banner[];
   const reviews = (locale?.reviewsList ?? []) as Review[];
   const gallery = (locale?.gallery?.images ?? []) as string[];
+  const socialLinks = (locale?.footer?.socialLinks ?? []) as SocialLink[];
 
   const handleGalleryUpload = async (files: FileList | null) => {
     if (!files?.length) {
@@ -273,6 +305,33 @@ export default function ContentPage() {
     next[galleryEditIndex] = galleryEditUrl;
     updateGallery(next);
     setIsGalleryEditModalOpen(false);
+  };
+
+  const openSocialModalNew = () => {
+    setSocialIndex(null);
+    setSocialForm({ label: "", href: "" });
+    setIsSocialModalOpen(true);
+  };
+
+  const openSocialModalEdit = (index: number) => {
+    setSocialIndex(index);
+    setSocialForm(socialLinks[index] ?? { label: "", href: "" });
+    setIsSocialModalOpen(true);
+  };
+
+  const closeSocialModal = () => {
+    setIsSocialModalOpen(false);
+  };
+
+  const handleSocialSave = () => {
+    const next = [...socialLinks];
+    if (socialIndex !== null) {
+      next[socialIndex] = socialForm;
+    } else {
+      next.push(socialForm);
+    }
+    updateSocialLinks(next);
+    setIsSocialModalOpen(false);
   };
 
   const filteredBanners = banners.filter((item, index) => {
@@ -616,6 +675,170 @@ export default function ContentPage() {
               onChange={(event) => updateFooter("text", event.target.value)}
             />
           </label>
+          <label className="text-sm font-medium text-emerald-900 md:col-span-2">
+            {copy.footerContactsTitle}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.footer?.contactsTitle ?? "")}
+              onChange={(event) => updateFooter("contactsTitle", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900 md:col-span-2">
+            {copy.footerSocialLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.footer?.socialLabel ?? "")}
+              onChange={(event) => updateFooter("socialLabel", event.target.value)}
+            />
+          </label>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title={copy.contactsTitle}
+        actions={
+          <button
+            onClick={openSocialModalNew}
+            className="rounded-xl border border-emerald-100 bg-white/70 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+          >
+            {copy.addSocial}
+          </button>
+        }
+      >
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.hoursLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.hoursLabel ?? "")}
+              onChange={(event) => updateContacts("hoursLabel", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.hoursValue}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.hoursValue ?? "")}
+              onChange={(event) => updateContacts("hoursValue", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.callLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.callLabel ?? "")}
+              onChange={(event) => updateContacts("callLabel", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.whatsappLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.whatsappLabel ?? "")}
+              onChange={(event) => updateContacts("whatsappLabel", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.directionsLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.directionsLabel ?? "")}
+              onChange={(event) => updateContacts("directionsLabel", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.quickTitle}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.quickTitle ?? "")}
+              onChange={(event) => updateContacts("quickTitle", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.quickName}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.quickName ?? "")}
+              onChange={(event) => updateContacts("quickName", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.quickPhone}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.quickPhone ?? "")}
+              onChange={(event) => updateContacts("quickPhone", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.quickMessage}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.quickMessage ?? "")}
+              onChange={(event) => updateContacts("quickMessage", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.quickSubmit}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.quickSubmit ?? "")}
+              onChange={(event) => updateContacts("quickSubmit", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.addressLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.addressLabel ?? "")}
+              onChange={(event) => updateContacts("addressLabel", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.phoneLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.phoneLabel ?? "")}
+              onChange={(event) => updateContacts("phoneLabel", event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium text-emerald-900">
+            {copy.emailLabel}
+            <input
+              className="mt-2 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              value={String(locale?.contacts?.emailLabel ?? "")}
+              onChange={(event) => updateContacts("emailLabel", event.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {socialLinks.map((item, index) => (
+            <div
+              key={`${item.label}-${index}`}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-white/70 p-3"
+            >
+              <div className="text-sm text-emerald-900">
+                {item.label} — {item.href}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => openSocialModalEdit(index)}
+                  className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
+                >
+                  {copy.edit}
+                </button>
+                <button
+                  onClick={() =>
+                    updateSocialLinks(socialLinks.filter((_, i) => i !== index))
+                  }
+                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                >
+                  {copy.remove}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </SectionCard>
 
@@ -886,6 +1109,60 @@ export default function ContentPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 onClick={handleGalleryEditSave}
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                {copy.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isSocialModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="glass-panel w-full max-w-lg rounded-3xl border border-emerald-100/70 p-6 shadow-lg">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold text-emerald-900">
+                {socialIndex !== null ? copy.modalEdit : copy.modalNew}
+              </h3>
+              <button
+                onClick={closeSocialModal}
+                className="rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800 hover:bg-emerald-50"
+              >
+                {copy.cancel}
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <label className="text-sm font-medium text-emerald-900">
+                {copy.socialLabel}
+                <input
+                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  value={socialForm.label}
+                  onChange={(event) =>
+                    setSocialForm((prev) => ({
+                      ...prev,
+                      label: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="text-sm font-medium text-emerald-900">
+                {copy.socialLink}
+                <input
+                  className="mt-2 w-full rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  value={socialForm.href}
+                  onChange={(event) =>
+                    setSocialForm((prev) => ({
+                      ...prev,
+                      href: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={handleSocialSave}
                 className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
               >
                 {copy.save}

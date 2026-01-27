@@ -29,6 +29,8 @@ export default function AdminShell({
   const navItems = [
     { href: "/tours", label: copy.nav.tours },
     { href: "/content", label: copy.nav.content },
+    { href: "/about", label: copy.nav.about },
+    { href: "/integrations", label: copy.nav.integrations },
   ];
 
   const handleLogout = async () => {
