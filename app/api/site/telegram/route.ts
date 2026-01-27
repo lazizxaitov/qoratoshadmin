@@ -94,8 +94,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const text = lines.join("
-");
+  const text = lines.join("\n");
 
   const response = await fetch(
     `https://api.telegram.org/bot${config.botToken}/sendMessage`,
