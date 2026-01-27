@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { content as seedContent } from "../app/content";
+import { content as seedContent } from "../app/content/seed";
 
 type ContentShape = typeof seedContent;
 

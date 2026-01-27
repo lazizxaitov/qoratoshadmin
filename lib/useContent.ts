@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { content as fallbackContent } from "../app/content";
+import { content as fallbackContent } from "../app/content/seed";
 
 export type ContentShape = typeof fallbackContent;
 

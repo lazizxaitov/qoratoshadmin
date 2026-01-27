@@ -17,6 +17,8 @@ type TourPayload = {
   nights: number;
   image_url: string;
   is_hot: number;
+  tour_type?: string;
+  gallery_urls?: string[];
 };
 
 function normalizeTour(payload: Partial<TourPayload>) {
@@ -42,7 +44,17 @@ function normalizeTour(payload: Partial<TourPayload>) {
   }
 
   const isHot = payload.is_hot ?? 0;
-  return { data: { ...payload, is_hot: isHot } as TourPayload, errors };
+  const tourType = payload.tour_type ?? "regular";
+  const galleryUrls = payload.gallery_urls ?? [];
+  return {
+    data: {
+      ...payload,
+      is_hot: isHot,
+      tour_type: tourType,
+      gallery_urls: galleryUrls,
+    } as TourPayload,
+    errors,
+  };
 }
 
 export async function GET(request: Request) {
@@ -56,13 +68,18 @@ export async function GET(request: Request) {
     .prepare(
       `
         SELECT id, title, country, city, start_date, end_date, adults_min, adults_max,
-               price_from, nights, image_url, is_hot
+               price_from, nights, image_url, is_hot, tour_type, gallery_urls
         FROM tours
         ORDER BY start_date ASC;
       `
     )
     .all();
-  return NextResponse.json({ items: rows });
+  const items = rows.map((row: any) => ({
+    ...row,
+    tour_type: row.tour_type ?? "regular",
+    gallery_urls: row.gallery_urls ? JSON.parse(row.gallery_urls) : [],
+  }));
+  return NextResponse.json({ items });
 }
 
 export async function POST(request: Request) {
@@ -82,14 +99,19 @@ export async function POST(request: Request) {
     `
       INSERT INTO tours (
         id, title, country, city, start_date, end_date,
-        adults_min, adults_max, price_from, nights, image_url, is_hot
+        adults_min, adults_max, price_from, nights, image_url, is_hot,
+        tour_type, gallery_urls
       ) VALUES (
         @id, @title, @country, @city, @start_date, @end_date,
-        @adults_min, @adults_max, @price_from, @nights, @image_url, @is_hot
+        @adults_min, @adults_max, @price_from, @nights, @image_url, @is_hot,
+        @tour_type, @gallery_urls
       );
     `
   );
-  insert.run(data);
+  insert.run({
+    ...data,
+    gallery_urls: JSON.stringify(data.gallery_urls ?? []),
+  });
   return NextResponse.json({ ok: true });
 }
 
@@ -119,11 +141,16 @@ export async function PUT(request: Request) {
         price_from = @price_from,
         nights = @nights,
         image_url = @image_url,
-        is_hot = @is_hot
+        is_hot = @is_hot,
+        tour_type = @tour_type,
+        gallery_urls = @gallery_urls
       WHERE id = @id;
     `
   );
-  update.run(data);
+  update.run({
+    ...data,
+    gallery_urls: JSON.stringify(data.gallery_urls ?? []),
+  });
   return NextResponse.json({ ok: true });
 }
 
