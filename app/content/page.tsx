@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import AdminShell from "../../components/AdminShell";
 import SectionCard from "../../components/SectionCard";
+import ImageCropModal from "../../components/ImageCropModal";
 import { useAdminLang } from "../../lib/useAdminLang";
 import ruCopy from "./copy.ru.json";
 import uzCopy from "./copy.uz.json";
@@ -75,6 +76,9 @@ export default function ContentPage() {
     href: "",
   });
   const [socialSnapshot, setSocialSnapshot] = useState("");
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropAspect, setCropAspect] = useState<number | null>(null);
+  const cropResolveRef = useRef<((blob: Blob | null) => void) | null>(null);
 
   const copy = adminLang === "ru" ? ruCopy : uzCopy;
 
@@ -194,6 +198,21 @@ export default function ContentPage() {
     }
   };
 
+  const openCrop = (file: File, aspect: number | null) =>
+    new Promise<Blob | null>((resolve) => {
+      cropResolveRef.current = resolve;
+      setCropAspect(aspect);
+      setCropFile(file);
+    });
+
+  const closeCrop = (result: Blob | null) => {
+    if (cropResolveRef.current) {
+      cropResolveRef.current(result);
+    }
+    cropResolveRef.current = null;
+    setCropFile(null);
+  };
+
   const handleSave = async () => {
     setStatus(copy.statusSaving);
     const response = await fetch("/api/site/content", {
@@ -220,7 +239,15 @@ export default function ContentPage() {
     const next = [...gallery];
     for (const file of Array.from(files)) {
       // eslint-disable-next-line no-await-in-loop
-      await handleUpload(file, (url) => {
+      const cropped = await openCrop(file, 4 / 3);
+      if (!cropped) {
+        continue;
+      }
+      const nextFile = new File([cropped], file.name, {
+        type: cropped.type || file.type,
+      });
+      // eslint-disable-next-line no-await-in-loop
+      await handleUpload(nextFile, (url) => {
         next.push(url);
       });
     }
@@ -986,9 +1013,17 @@ export default function ContentPage() {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     if (file) {
-                      handleUpload(file, (url) =>
-                        setBannerForm((prev) => ({ ...prev, image: url }))
-                      );
+                      openCrop(file, 16 / 9).then((cropped) => {
+                        if (!cropped) {
+                          return;
+                        }
+                        const nextFile = new File([cropped], file.name, {
+                          type: cropped.type || file.type,
+                        });
+                        handleUpload(nextFile, (url) =>
+                          setBannerForm((prev) => ({ ...prev, image: url }))
+                        );
+                      });
                     }
                   }}
                 />
@@ -1164,7 +1199,15 @@ export default function ContentPage() {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     if (file) {
-                      handleUpload(file, (url) => setGalleryEditUrl(url));
+                      openCrop(file, 4 / 3).then((cropped) => {
+                        if (!cropped) {
+                          return;
+                        }
+                        const nextFile = new File([cropped], file.name, {
+                          type: cropped.type || file.type,
+                        });
+                        handleUpload(nextFile, (url) => setGalleryEditUrl(url));
+                      });
                     }
                   }}
                 />
@@ -1241,6 +1284,14 @@ export default function ContentPage() {
             </div>
           </div>
         </div>
+      ) : null}
+      {cropFile ? (
+        <ImageCropModal
+          file={cropFile}
+          aspect={cropAspect}
+          onCancel={() => closeCrop(null)}
+          onComplete={(blob) => closeCrop(blob)}
+        />
       ) : null}
     </AdminShell>
   );

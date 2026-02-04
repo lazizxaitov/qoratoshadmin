@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import AdminShell from "../../components/AdminShell";
 import SectionCard from "../../components/SectionCard";
+import ImageCropModal from "../../components/ImageCropModal";
 import type { Tour } from "../../lib/types";
 import { useAdminLang } from "../../lib/useAdminLang";
 import ruCopy from "./copy.ru.json";
@@ -251,6 +252,9 @@ export default function ToursPage() {
   const [typeSnapshot, setTypeSnapshot] = useState("{}");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const typeDropdownRef = useRef<HTMLDivElement | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropAspect, setCropAspect] = useState<number | null>(null);
+  const cropResolveRef = useRef<((blob: Blob | null) => void) | null>(null);
 
   const selectedTour = useMemo(
     () => tours.find((tour) => tour.id === selectedId) ?? null,
@@ -543,6 +547,21 @@ export default function ToursPage() {
     }
   };
 
+  const openCrop = (file: File, aspect: number | null) =>
+    new Promise<Blob | null>((resolve) => {
+      cropResolveRef.current = resolve;
+      setCropAspect(aspect);
+      setCropFile(file);
+    });
+
+  const closeCrop = (result: Blob | null) => {
+    if (cropResolveRef.current) {
+      cropResolveRef.current(result);
+    }
+    cropResolveRef.current = null;
+    setCropFile(null);
+  };
+
   const handleGalleryUpload = async (files: FileList | null) => {
     if (!files?.length) {
       return;
@@ -550,7 +569,15 @@ export default function ToursPage() {
     const nextUrls = [...(form.gallery_urls ?? [])];
     for (const file of Array.from(files)) {
       // eslint-disable-next-line no-await-in-loop
-      await handleUpload(file, (url) => {
+      const cropped = await openCrop(file, 4 / 3);
+      if (!cropped) {
+        continue;
+      }
+      const nextFile = new File([cropped], file.name, {
+        type: cropped.type || file.type,
+      });
+      // eslint-disable-next-line no-await-in-loop
+      await handleUpload(nextFile, (url) => {
         nextUrls.push(url);
       });
     }
@@ -918,15 +945,23 @@ export default function ToursPage() {
                     accept="image/*"
                     className="hidden"
                     onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) {
-                        handleUpload(file, (url) =>
-                          handleChange("image_url", url)
-                        );
-                      }
-                    }}
-                  />
-                </label>
+                    const file = event.target.files?.[0];
+                    if (file) {
+                        openCrop(file, 16 / 9).then((cropped) => {
+                          if (!cropped) {
+                            return;
+                          }
+                          const nextFile = new File([cropped], file.name, {
+                            type: cropped.type || file.type,
+                          });
+                          handleUpload(nextFile, (url) =>
+                            handleChange("image_url", url)
+                          );
+                        });
+                    }
+                  }}
+                />
+              </label>
                 <span className="text-[11px] text-emerald-700">{copy.hint}</span>
               </div>
             </div>
@@ -1083,6 +1118,14 @@ export default function ToursPage() {
             </div>
           </div>
         </div>
+      ) : null}
+      {cropFile ? (
+        <ImageCropModal
+          file={cropFile}
+          aspect={cropAspect}
+          onCancel={() => closeCrop(null)}
+          onComplete={(blob) => closeCrop(blob)}
+        />
       ) : null}
     </AdminShell>
   );

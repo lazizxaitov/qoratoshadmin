@@ -3,6 +3,16 @@ import { getSiteAuthHeader, SITE_API_BASE } from "../../../../lib/site-config";
 
 export const runtime = "nodejs";
 
+const toAbsoluteUrl = (value: unknown, base: string) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+  if (value.startsWith("/uploads/")) {
+    return `${base}${value}`;
+  }
+  return value;
+};
+
 export async function GET() {
   const response = await fetch(`${SITE_API_BASE}/api/admin/tours`, {
     headers: {
@@ -11,6 +21,16 @@ export async function GET() {
     cache: "no-store",
   });
   const data = await response.json();
+  const base = SITE_API_BASE.replace(/\/$/, "");
+  if (Array.isArray(data?.items)) {
+    data.items = data.items.map((tour: Record<string, unknown>) => ({
+      ...tour,
+      image_url: toAbsoluteUrl(tour.image_url, base),
+      gallery_urls: Array.isArray(tour.gallery_urls)
+        ? tour.gallery_urls.map((url: unknown) => toAbsoluteUrl(url, base))
+        : tour.gallery_urls,
+    }));
+  }
   return NextResponse.json(data, { status: response.status });
 }
 

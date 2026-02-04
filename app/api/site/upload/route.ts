@@ -14,5 +14,9 @@ export async function POST(request: Request) {
   });
 
   const data = await response.json();
+  const base = SITE_API_BASE.replace(/\/$/, "");
+  if (typeof data?.url === "string" && data.url.startsWith("/")) {
+    data.url = `${base}${data.url}`;
+  }
   return NextResponse.json(data, { status: response.status });
 }
