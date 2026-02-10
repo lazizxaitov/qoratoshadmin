@@ -4,6 +4,10 @@ export type Tour = {
   title_ru?: string;
   title_uz?: string;
   title_en?: string;
+  description?: string;
+  description_ru?: string;
+  description_uz?: string;
+  description_en?: string;
   country: string;
   country_ru?: string;
   country_uz?: string;

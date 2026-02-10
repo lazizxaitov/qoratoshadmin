@@ -23,6 +23,7 @@
   "typeStatusError": "Saqlashda xatolik",
   "fields": {
     "title": "Nomi",
+    "description": "Tavsif",
     "country": "Mamlakat",
     "city": "Shahar",
     "startDate": "Boshlanish sanasi",

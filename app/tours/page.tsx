@@ -15,6 +15,10 @@ const emptyTour: Tour = {
   title_ru: "",
   title_uz: "",
   title_en: "",
+  description: "",
+  description_ru: "",
+  description_uz: "",
+  description_en: "",
   country: "",
   country_ru: "",
   country_uz: "",
@@ -57,6 +61,10 @@ const serializeTour = (tour: Tour) =>
     title_ru: tour.title_ru,
     title_uz: tour.title_uz,
     title_en: tour.title_en,
+    description: tour.description,
+    description_ru: tour.description_ru,
+    description_uz: tour.description_uz,
+    description_en: tour.description_en,
     country: tour.country,
     country_ru: tour.country_ru,
     country_uz: tour.country_uz,
@@ -357,6 +365,12 @@ export default function ToursPage() {
         title_ru: selectedTour.title_ru ?? selectedTour.title ?? "",
         title_uz: selectedTour.title_uz ?? selectedTour.title ?? "",
         title_en: selectedTour.title_en ?? selectedTour.title ?? "",
+        description_ru:
+          selectedTour.description_ru ?? selectedTour.description ?? "",
+        description_uz:
+          selectedTour.description_uz ?? selectedTour.description ?? "",
+        description_en:
+          selectedTour.description_en ?? selectedTour.description ?? "",
         country_ru: selectedTour.country_ru ?? selectedTour.country ?? "",
         country_uz: selectedTour.country_uz ?? selectedTour.country ?? "",
         country_en: selectedTour.country_en ?? selectedTour.country ?? "",
@@ -364,6 +378,7 @@ export default function ToursPage() {
         city_uz: selectedTour.city_uz ?? selectedTour.city ?? "",
         city_en: selectedTour.city_en ?? selectedTour.city ?? "",
         title: selectedTour.title_ru ?? selectedTour.title ?? "",
+        description: selectedTour.description_ru ?? selectedTour.description ?? "",
         country: selectedTour.country_ru ?? selectedTour.country ?? "",
         city: selectedTour.city_ru ?? selectedTour.city ?? "",
         tour_type:
@@ -450,7 +465,7 @@ export default function ToursPage() {
   };
 
   const handleLocalizedChange = (
-    field: "country" | "city",
+    field: "country" | "city" | "description",
     value: string
   ) => {
     const key = `${field}_${tourLang}` as keyof Tour;
@@ -478,17 +493,30 @@ export default function ToursPage() {
     setStatus(copy.status.saving);
     const baseTitle =
       form.title_ru || form.title || form.title_uz || form.title_en || "";
+    const baseDescription =
+      form.description_ru ||
+      form.description ||
+      form.description_uz ||
+      form.description_en ||
+      "";
     const baseCountry =
       form.country_ru || form.country || form.country_uz || form.country_en || "";
     const baseCity =
       form.city_ru || form.city || form.city_uz || form.city_en || "";
     const method = modalMode === "edit" ? "PUT" : "POST";
     const payload = form.id
-      ? { ...form, title: baseTitle, country: baseCountry, city: baseCity }
+      ? {
+          ...form,
+          title: baseTitle,
+          description: baseDescription,
+          country: baseCountry,
+          city: baseCity,
+        }
       : {
           ...form,
           id: slugify(baseTitle),
           title: baseTitle,
+          description: baseDescription,
           country: baseCountry,
           city: baseCity,
         };
@@ -590,7 +618,9 @@ export default function ToursPage() {
     return localized || (tour[field] as string) || "";
   };
 
-  const getFormLocalizedValue = (field: "title" | "country" | "city") => {
+  const getFormLocalizedValue = (
+    field: "title" | "country" | "city" | "description"
+  ) => {
     const key = `${field}_${tourLang}` as keyof Tour;
     return String(form[key] ?? "");
   };
@@ -847,6 +877,16 @@ export default function ToursPage() {
                   value={getFormLocalizedValue("city")}
                   onChange={(event) =>
                     handleLocalizedChange("city", event.target.value)
+                  }
+                />
+              </label>
+              <label className="text-sm font-medium text-emerald-900 md:col-span-2">
+                {copy.fields.description}
+                <textarea
+                  className="mt-2 h-24 w-full rounded-xl border border-emerald-100 bg-white/80 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  value={getFormLocalizedValue("description")}
+                  onChange={(event) =>
+                    handleLocalizedChange("description", event.target.value)
                   }
                 />
               </label>
