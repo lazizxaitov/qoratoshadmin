@@ -785,7 +785,7 @@ export default function ToursPage() {
           onClick={closeModal}
         >
           <div
-            className="glass-panel w-full max-w-3xl rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
+            className="glass-panel max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-emerald-100/70 p-6 shadow-lg"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
